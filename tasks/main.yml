@@ -1,0 +1,89 @@
+---
+# tasks file for el_k3s
+- name: Update System Packages
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+
+- name: Install requried Packages
+  ansible.builtin.package:
+    name: git
+   state: latest
+
+- name: Download Kubectl release
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
+    dest: "~/stable.txt"
+
+- name: Set Kubectl release
+  slurp:
+    src: "~/stable.txt"
+  register: kubectlver
+
+- name: Set Kubectl_ver release variable
+  set_fact:
+    kubectl_ver: "{{ kubectlver['content'] | b64decode }}"
+
+- name: Download Kubectl
+  ansible.builtin.get_url:
+    url: "https://storage.googleapis.com/kubernetes-release/release/{{ kubectl_ver }}/bin/linux/amd64/kubectl"
+    dest: "/usr/local/bin/kubectl"
+
+- name: Make kubectl executable
+  ansible.builtin.file:
+    path: "/usr/local/bin/kubectl"
+    mode: +x
+
+- name: Create a symbolic link kubectl
+  ansible.builtin.file:
+    src: "/usr/local/bin/kubectl"
+    dest: "/usr/bin/kubectl"
+    state: link
+
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+  notify: reboot host
+
+- name: Enable http and https
+  ansible.posix.firewalld:
+    zone: public
+    service: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - https
+    - http
+  notify: firewall reload
+
+- name: Enable kublet ports
+  ansible.posix.firewalld:
+    zone: public
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - "8443/tcp"
+    - "10250/tcp"
+    - "10248/tcp"
+  notify: firewall reload
+
+- name: Enable masquerade
+  ansible.posix.firewalld:
+    zone: public
+    masquerade: "yes"
+    permanent: yes
+    state: enabled
+  notify: firewall reload
+
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: disable firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: Install K3s
+  shell: curl -sfL https://get.k3s.io | sh -

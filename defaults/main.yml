@@ -1,0 +1,3 @@
+---
+# defaults file for el_k3s
+ansible_user: awx
