@@ -34,6 +34,7 @@ Example Playbook
 - name: K3s install on Enterprise Linux
   hosts: server
   become: yes
+  ansible_user: user
 
   roles:
     - role: jesperberth.el_k3s

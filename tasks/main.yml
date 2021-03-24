@@ -8,7 +8,7 @@
 - name: Install requried Packages
   ansible.builtin.package:
     name: git
-   state: latest
+    state: latest
 
 - name: Download Kubectl release
   ansible.builtin.get_url:
@@ -40,41 +40,41 @@
     dest: "/usr/bin/kubectl"
     state: link
 
-- name: Disable SELinux
-  ansible.posix.selinux:
-    state: disabled
-  notify: reboot host
+#- name: Disable SELinux
+#  ansible.posix.selinux:
+#    state: disabled
+#  notify: reboot host
 
-- name: Enable http and https
-  ansible.posix.firewalld:
-    zone: public
-    service: "{{ item }}"
-    permanent: yes
-    state: enabled
-  loop:
-    - https
-    - http
-  notify: firewall reload
+#- name: Enable http and https
+#  ansible.posix.firewalld:
+#    zone: public
+#    service: "{{ item }}"
+#    permanent: yes
+#    state: enabled
+#  loop:
+#    - https
+#    - http
+#  notify: firewall reload
 
-- name: Enable kublet ports
-  ansible.posix.firewalld:
-    zone: public
-    port: "{{ item }}"
-    permanent: yes
-    state: enabled
-  loop:
-    - "8443/tcp"
-    - "10250/tcp"
-    - "10248/tcp"
-  notify: firewall reload
+#- name: Enable kublet ports
+# ansible.posix.firewalld:
+#    zone: public
+#    port: "{{ item }}"
+#   permanent: yes
+#   state: enabled
+# loop:
+#   - "8443/tcp"
+#    - "10250/tcp"
+#    - "10248/tcp"
+# notify: firewall reload
 
-- name: Enable masquerade
-  ansible.posix.firewalld:
-    zone: public
-    masquerade: "yes"
-    permanent: yes
-    state: enabled
-  notify: firewall reload
+#- name: Enable masquerade
+#  ansible.posix.firewalld:
+#    zone: public
+#   masquerade: "yes"
+#   permanent: yes
+#   state: enabled
+#  notify: firewall reload
 
 - name: Flush handlers
   meta: flush_handlers
@@ -85,5 +85,17 @@
     state: stopped
     enabled: no
 
+- name: Check if K3s installed
+  stat:
+    path: /usr/local/bin/k3s
+  register: k3s_result
+
 - name: Install K3s
   shell: curl -sfL https://get.k3s.io | sh -
+  when: not k3s_result.stat.exists
+
+- name: Set kubeconfig ENV
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    state: present
+    line: KUBECONFIG=/etc/rancher/k3s/k3s.yaml
