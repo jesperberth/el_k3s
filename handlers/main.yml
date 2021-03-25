@@ -1,9 +1,2 @@
 ---
 # handlers file for el_k3s
-- name: firewall reload
-  systemd:
-    name: firewalld
-    state: reloaded
-
-- name: reboot host
-  reboot:

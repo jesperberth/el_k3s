@@ -40,45 +40,6 @@
     dest: "/usr/bin/kubectl"
     state: link
 
-#- name: Disable SELinux
-#  ansible.posix.selinux:
-#    state: disabled
-#  notify: reboot host
-
-#- name: Enable http and https
-#  ansible.posix.firewalld:
-#    zone: public
-#    service: "{{ item }}"
-#    permanent: yes
-#    state: enabled
-#  loop:
-#    - https
-#    - http
-#  notify: firewall reload
-
-#- name: Enable kublet ports
-# ansible.posix.firewalld:
-#    zone: public
-#    port: "{{ item }}"
-#   permanent: yes
-#   state: enabled
-# loop:
-#   - "8443/tcp"
-#    - "10250/tcp"
-#    - "10248/tcp"
-# notify: firewall reload
-
-#- name: Enable masquerade
-#  ansible.posix.firewalld:
-#    zone: public
-#   masquerade: "yes"
-#   permanent: yes
-#   state: enabled
-#  notify: firewall reload
-
-- name: Flush handlers
-  meta: flush_handlers
-
 - name: disable firewalld
   ansible.builtin.systemd:
     name: firewalld
