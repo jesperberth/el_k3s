@@ -45,6 +45,7 @@
     name: firewalld
     state: stopped
     enabled: no
+  when: not ansible_facts['distribution'] == "Amazon"
 
 - name: Check if K3s installed
   stat:
