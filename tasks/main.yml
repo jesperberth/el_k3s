@@ -10,6 +10,12 @@
     name: git
     state: latest
 
+- name: Install requried Packages
+  ansible.builtin.package:
+    name: container-selinux
+    state: latest
+  when: ansible_facts['distribution'] == "Amazon"
+
 - name: Download Kubectl release
   ansible.builtin.get_url:
     url: "https://storage.googleapis.com/kubernetes-release/release/stable.txt"
