@@ -45,6 +45,7 @@
     name: firewalld
     state: stopped
     enabled: no
+  ignore_errors: true
 
 - name: Check if K3s installed
   stat:
